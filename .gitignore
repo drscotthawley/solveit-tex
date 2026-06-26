@@ -216,3 +216,19 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.pdf
+*.tex
+texput.log
+
+# Python
+__pycache__/
+*.egg-info/
+*.pyc
+
