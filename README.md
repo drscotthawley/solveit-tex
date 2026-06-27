@@ -2,7 +2,7 @@
 
 Convert [Solveit](https://solveit.fast.ai) dialogs to LaTeX and compile PDFs.  
 
-The motivation is to facilitate [Human-Authored, Computer-Interrogated (HACI)](https://share.solveit.pub/d/35bfa209be24e19292d5b63d984d4b7f) workflows in which the AI is used to prompt the user into refining the content written by the user.
+The motivation is to facilitate [Human-Authored, Computer-Interrogated (HACI)](https://share.solveit.pub/d/35bfa209be24e19292d5b63d984d4b7f) workflows in which the AI is used to prompt the user into refining their own content.
 
 ## Prerequisites
 
