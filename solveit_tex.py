@@ -123,3 +123,12 @@ def compile_latex(tex_file: str, cwd: str = '.'):
     print(f"PDF url: {pdf_url}")
     sys.stdout.flush() 
     display(HTML(f'<a href="{pdf_url}" target="_blank">{pdf_url}</a>'))
+async def current_to_pdf():
+    """
+    Wrapper that converts the current dialogue to PDF and prints the private URL for it.
+    Usage: await current_to_pdf()
+    """
+    name = (await curr_dialog())['name']
+    path = f'{await realpath("/")}/{name}.ipynb'
+    export_ipynb_to_tex(path)
+    compile_latex(path.replace('.ipynb', '.tex'))
