@@ -61,7 +61,10 @@ def export_ipynb_to_tex(ipynb_path: str, output_path: str = None):
                 bib_match = re.search(r'(\w+)\.bib', content)
                 if bib_match:
                     body_lines.append(f'\\bibliographystyle{{unsrt}}\n\\bibliography{{{bib_match.group(1)}}}\n')
+                # Skip all lines in References section until next section or end
                 i += 1
+                while i < len(lines) and not lines[i].startswith('## '):
+                    i += 1
                 continue
             elif line.startswith('### '):
                 body_lines.append(f'\\subsection{{{line[4:].strip()}}}\n')
