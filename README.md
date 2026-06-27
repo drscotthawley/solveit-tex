@@ -16,11 +16,11 @@ quarto install tinytex
 ```
 
 TinyTeX installs into `~/.TinyTeX/` but its binaries may not be on your
-`PATH`. You can either update your `$PATH` accordingly, e.g.. 
+`PATH`. You can either update your `$PATH` accordingly, e.g.. add this line to your `~/.bashrc` file:
 ```bash
 export PATH="$HOME/.TinyTeX/bin/x86_64-linux:$PATH"
 ```
-Or what I like to do is to symlink `pdflatex` (and any other tools you need) into a directory
+Or, what I like to do is to symlink `pdflatex` (and any other tools you need) into a directory
 that is on your PATH:
 
 ```bash
