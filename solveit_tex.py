@@ -135,4 +135,5 @@ async def current_to_pdf():
     name = (await curr_dialog())['name']
     path = f'{await realpath("/")}/{name}.ipynb'
     export_ipynb_to_tex(path)
+    display(HTML(f'<br>'))
     compile_latex(path.replace('.ipynb', '.tex'))
