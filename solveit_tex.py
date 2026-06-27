@@ -128,6 +128,8 @@ async def current_to_pdf():
     Wrapper that converts the current dialogue to PDF and prints the private URL for it.
     Usage: await current_to_pdf()
     """
+    from dialoghelper.solveitskill import curr_dialog, realpath
+
     name = (await curr_dialog())['name']
     path = f'{await realpath("/")}/{name}.ipynb'
     export_ipynb_to_tex(path)
