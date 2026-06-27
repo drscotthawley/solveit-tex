@@ -6,23 +6,43 @@ The motivation is to facilitate [Human-Authored, Computer-Interrogated (HACI)](h
 
 ## Prerequisites
 
-You need a working TeX installation. Install TeX Live:
+`solveit-tex` needs a working `pdflatex` (and `bibtex`). On Solveit, the
+easiest way to get these is via TinyTeX, which Quarto can install for you.
+(Quarto is already available on Solveit.)
 
 ```bash
-# Ubuntu/Debian
-sudo apt-get install texlive-full
-
-# macOS (using Homebrew)
-brew install --cask mactex
-
-# Or use the cross-platform installer from https://tug.org/texlive/
+# Install TinyTeX (provides pdflatex, bibtex, tlmgr, etc.)
+quarto install tinytex
 ```
 
-Verify installation:
+TinyTeX installs into `~/.TinyTeX/` but its binaries may not be on your
+`PATH`. Symlink `pdflatex` (and any other tools you need) into a directory
+that is on your PATH:
+
+```bash
+ln -s ~/.TinyTeX/bin/*/pdflatex ~/.local/bin/
+ln -s ~/.TinyTeX/bin/*/bibtex ~/.local/bin/
+ln -s ~/.TinyTeX/bin/*/tlmgr ~/.local/bin/
+```
+
+Verify:
+
 ```bash
 pdflatex --version
 bibtex --version
 ```
+
+### Missing LaTeX packages
+
+TinyTeX is minimal, so a compile may fail with a missing font or package.
+Install what's needed with `tlmgr`. For example, the NeurIPS example needs
+the `cm-super` fonts:
+
+```bash
+tlmgr install cm-super
+updmap-sys
+```
+
 
 ## Installation
 
