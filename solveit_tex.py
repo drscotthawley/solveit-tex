@@ -84,6 +84,8 @@ def parse_table(lines):
         m = re.match(r'\s*\*([^*]+)\*(?:\s*\\\{#([^}]+)\})?', lines[i])
         if m: caption, label = m.group(1), m.group(2)
     return {'headers': headers, 'rows': rows, 'alignments': aligns, 'caption': caption, 'label': label}
+def md_to_latex_bold(text: str):
+    return re.sub(r'\*\*([^*]+)\*\*', r'\\textbf{\1}', text)
 def make_table(tbl: dict):
     "Generate LaTeX table environment from parsed table dict."
     col_spec = ''.join(tbl['alignments'])
@@ -91,7 +93,8 @@ def make_table(tbl: dict):
     lines.append(' & '.join(tbl['headers']) + ' \\\\')
     lines.append('\\hline')
     for row in tbl['rows']:
-        lines.append(' & '.join(row) + ' \\\\')
+        #lines.append(' & '.join(row) + ' \\\\')
+        lines.append(' & '.join(md_to_latex_bold(cell) for cell in row) + ' \\\\')
     lines.extend(['\\hline', '\\end{tabular}'])
     if tbl.get('caption'): lines.append(f'\\caption{{{tbl["caption"]}}}')
     if tbl.get('label'): lines.append(f'\\label{{tab:{tbl["label"]}}}')
