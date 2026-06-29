@@ -93,7 +93,6 @@ def make_table(tbl: dict):
     lines.append(' & '.join(tbl['headers']) + ' \\\\')
     lines.append('\\hline')
     for row in tbl['rows']:
-        #lines.append(' & '.join(row) + ' \\\\')
         lines.append(' & '.join(md_to_latex_bold(cell) for cell in row) + ' \\\\')
     lines.extend(['\\hline', '\\end{tabular}'])
     if tbl.get('caption'): lines.append(f'\\caption{{{tbl["caption"]}}}')
