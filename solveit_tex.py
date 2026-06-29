@@ -65,6 +65,57 @@ def make_figure(fig_dict: dict):
     if label: lines.append(f'\\label{{fig:{label}}}')  # Add label if provided
     lines.append('\\end{figure}')  # Close figure environment
     return '\n'.join(lines)
+def parse_table(lines):
+    """Parse markdown table with optional caption. Returns table_dict or None."""
+    if isinstance(lines, str): lines = lines.split('\n')
+    start = 0
+    while start < len(lines) and not lines[start].strip(): start += 1
+    lines = lines[start:]
+    if not lines or not lines[0].startswith('|'): return None
+    i = 0
+    while i < len(lines) and lines[i].startswith('|'): i += 1
+    if i < 3: return None
+    sep = [c.strip() for c in lines[1].split('|')[1:-1]]
+    aligns = ['c' if c.startswith(':') and c.endswith(':') else 'r' if c.endswith(':') else 'l' for c in sep]
+    headers = [c.strip() for c in lines[0].split('|')[1:-1]]
+    rows = [[c.strip() for c in r.split('|')[1:-1]] for r in lines[2:i]]
+    caption, label = '', None
+    if i < len(lines):
+        m = re.match(r'\s*\*([^*]+)\*(?:\s*\\\{#([^}]+)\})?', lines[i])
+        if m: caption, label = m.group(1), m.group(2)
+    return {'headers': headers, 'rows': rows, 'alignments': aligns, 'caption': caption, 'label': label}
+def parse_table(lines):
+    """Parse markdown table with optional caption. Returns (table_dict, lines_consumed) or (None, 0)."""
+    if isinstance(lines, str): lines = lines.split('\n')
+    start = 0
+    while start < len(lines) and not lines[start].strip(): start += 1
+    lines = lines[start:]
+    if not lines or not lines[0].startswith('|'): return None, 0
+    i = 0
+    while i < len(lines) and lines[i].startswith('|'): i += 1
+    if i < 3: return None, 0
+    sep = [c.strip() for c in lines[1].split('|')[1:-1]]
+    aligns = ['c' if c.startswith(':') and c.endswith(':') else 'r' if c.endswith(':') else 'l' for c in sep]
+    headers = [c.strip() for c in lines[0].split('|')[1:-1]]
+    rows = [[c.strip() for c in r.split('|')[1:-1]] for r in lines[2:i]]
+    caption, label = '', None
+    if i < len(lines):
+        m = re.match(r'\s*\*([^*]+)\*(?:\s*\\\{#([^}]+)\})?', lines[i])
+        if m: caption, label = m.group(1), m.group(2); i += 1
+    return {'headers': headers, 'rows': rows, 'alignments': aligns, 'caption': caption, 'label': label}, i + start
+def make_table(tbl: dict):
+    "Generate LaTeX table environment from parsed table dict."
+    col_spec = ''.join(tbl['alignments'])
+    lines = [f'\\begin{{table}}[htbp]', '\\centering', f'\\begin{{tabular}}{{{col_spec}}}', '\\hline']
+    lines.append(' & '.join(tbl['headers']) + ' \\\\')
+    lines.append('\\hline')
+    for row in tbl['rows']:
+        lines.append(' & '.join(row) + ' \\\\')
+    lines.extend(['\\hline', '\\end{tabular}'])
+    if tbl.get('caption'): lines.append(f'\\caption{{{tbl["caption"]}}}')
+    if tbl.get('label'): lines.append(f'\\label{{tab:{tbl["label"]}}}')
+    lines.append('\\end{table}')
+    return '\n'.join(lines)
 def export_ipynb_to_tex(ipynb_path: str, output_path: str = None):
     r"""Export a Solveit dialog (.ipynb) to a compilable LaTeX file.
     Cells are emitted in document order, each preceded by a `% <cell-id>` comment.
@@ -124,7 +175,22 @@ def export_ipynb_to_tex(ipynb_path: str, output_path: str = None):
                 out.append(f'\\subsection{{{line[4:].strip()}}}\n')
             elif line.startswith('## '):
                 out.append(f'\\section{{{line[3:].strip()}}}\n')
-            else:
+            elif line.startswith('|'):    # table handling
+                # Collect table lines
+                table_lines = []
+                while i < len(lines) and lines[i].startswith('|'):
+                    table_lines.append(lines[i])
+                    i += 1
+                # Check for caption line
+                if i < len(lines) and re.match(r'\s*\*', lines[i]):
+                    table_lines.append(lines[i])
+                    i += 1
+                # Parse and convert
+                tbl_dict = parse_table(table_lines)
+                if tbl_dict:
+                    out.append(make_table(tbl_dict))
+                continue  # Skip the i += 1 at the end    
+            else:         # figures
                 fig_dict = parse_figure(line)
                 if fig_dict:
                     out.append(make_figure(fig_dict))
