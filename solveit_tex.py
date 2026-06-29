@@ -8,28 +8,46 @@ def get_private_url(path: str):
     path = os.path.abspath(path)
     return f"https://{server}.solve.it.com{path.replace('/app/data', '/static')}"
 def parse_figure(line: str):
-    "Parse markdown figure syntax: ![caption](path1,path2){width=X% #fig:label}"
+    """Parse markdown figure syntax with (potentially) multiple images on one line: ![alt1](img1.png){width=45%} ![alt2](img2.png) ![Caption](img3.png){#fig:label}
+     Images on one line get grouped into a single figure, with the final caption and label being the one used for the group"""
     import re
-    m = re.match(r'^!\[([^\]]*)\]\(([^)]+)\)(?:\{([^}]*)\})?$', line.strip())
-    if not m: return None
+    # Find all image patterns on the line
+    pattern = r'!\[([^\]]*)\]\(([^)]+)\)(?:\{([^}]*)\})?'
+    matches = re.findall(pattern, line.strip())
     
-    caption = m.group(1)
-    paths = [p.strip() for p in m.group(2).split(',')]
-    attrs = m.group(3) or ''
+    if not matches: return None
     
-    # If caption is just a filename (matches any of the paths), treat as no caption
+    images = []
+    caption = ""
+    label = None
+    
+    for i, (alt, path, attrs) in enumerate(matches):
+        attrs = attrs or ''
+        width_m = re.search(r'width=([^\s#]+)', attrs)
+        label_m = re.search(r'#fig:([^\s}]+)', attrs)
+        width = width_m.group(1) if width_m else None
+        
+        img = {'path': path.strip()}
+        if width: img['width'] = width
+        images.append(img)
+        
+        # Last image sets the caption and label
+        if i == len(matches) - 1:
+            caption = alt
+            label = label_m.group(1) if label_m else None
+    
+    # If caption is just a filename, treat as no caption
     if caption:
-        path_basenames = [Path(p).name for p in paths]
-        if caption in path_basenames or caption in paths:
+        path_basenames = [Path(p['path']).name for p in images]
+        if caption in path_basenames or caption in [p['path'] for p in images]:
             caption = ""
     
-    width_m = re.search(r'width=([^\s#]+)', attrs)
-    label_m = re.search(r'#fig:([^\s}]+)', attrs)
-    width = width_m.group(1) if width_m else None
-    label = label_m.group(1) if label_m else None
-    
-    images = [{'path': p, 'width': width} if width else {'path': p} for p in paths]
     return {'caption': caption, 'images': images, 'label': label}
+from pyskills import allow 
+
+allow(export_ipynb_to_tex)
+allow(current_to_pdf)
+allow(compile_latex)
 def make_figure(fig_dict: dict):
     "Generate LaTeX figure environment from image specs."
     images, caption, label = fig_dict['images'],  fig_dict.get('caption', ''), fig_dict.get('label', '')
@@ -101,9 +119,9 @@ def export_ipynb_to_tex(ipynb_path: str, output_path: str = None):
             elif line.startswith('## '):
                 out.append(f'\\section{{{line[3:].strip()}}}\n')
             else:
-                fig = parse_figure(line)
-                if fig:
-                    out.append(make_figure(fig['images'], fig['caption'], fig['label']))
+                fig_dict = parse_figure(line)
+                if fig_dict:
+                    out.append(make_figure(fig_dict))
                 else:
                     out.append(line)
 
@@ -173,8 +191,3 @@ async def current_to_pdf():
     export_ipynb_to_tex(path)
     display(HTML(f'<br>'))
     compile_latex(path.replace('.ipynb', '.tex'))
-from pyskills import allow 
-
-allow(export_ipynb_to_tex)
-allow(current_to_pdf)
-allow(compile_latex)
