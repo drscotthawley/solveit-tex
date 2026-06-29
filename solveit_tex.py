@@ -135,6 +135,8 @@ async def current_to_pdf():
     export_ipynb_to_tex(path)
     display(HTML(f'<br>'))
     compile_latex(path.replace('.ipynb', '.tex'))
+from pyskills import allow 
+
 allow(export_ipynb_to_tex)
 allow(current_to_pdf)
 allow(compile_latex)
