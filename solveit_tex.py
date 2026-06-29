@@ -7,17 +7,6 @@ def get_private_url(path: str):
     if not server: raise ValueError("PRIVATE_DOMAIN not set")
     path = os.path.abspath(path)
     return f"https://{server}.solve.it.com{path.replace('/app/data', '/static')}"
-def make_figure(images: list[dict], caption: str = "", label: str = ""):
-    "Generate LaTeX figure environment from image specs."
-    lines = ['\\begin{figure}[htbp]', '\\centering']  # Start figure environment
-    for img in images:
-        width_opt = f'[width={img["width"]}]' if 'width' in img else ''  # Add width if specified
-        lines.append(f'\\includegraphics{width_opt}{{{img["path"]}}}')  # Include the image
-    if caption: lines.append(f'\\caption{{{caption}}}')  # Add caption if provided
-    if label: lines.append(f'\\label{{fig:{label}}}')  # Add label if provided
-    lines.append('\\end{figure}')  # Close figure environment
-    return '\n'.join(lines)
-
 def parse_figure(line: str):
     "Parse markdown figure syntax: ![caption](path1,path2){width=X% #fig:label}"
     import re
@@ -41,7 +30,16 @@ def parse_figure(line: str):
     
     images = [{'path': p, 'width': width} if width else {'path': p} for p in paths]
     return {'caption': caption, 'images': images, 'label': label}
-
+def make_figure(images: list[dict], caption: str = "", label: str = ""):
+    "Generate LaTeX figure environment from image specs."
+    lines = ['\\begin{figure}[htbp]', '\\centering']  # Start figure environment
+    for img in images:
+        width_opt = f'[width={img["width"]}]' if 'width' in img else '[width=\\linewidth]' # Add width if specified, defalt to linewidth
+        lines.append(f'\\includegraphics{width_opt}{{{img["path"]}}}')  # Include the image
+    if caption: lines.append(f'\\caption{{{caption}}}')  # Add caption if provided
+    if label: lines.append(f'\\label{{fig:{label}}}')  # Add label if provided
+    lines.append('\\end{figure}')  # Close figure environment
+    return '\n'.join(lines)
 def export_ipynb_to_tex(ipynb_path: str, output_path: str = None):
     r"""Export a Solveit dialog (.ipynb) to a compilable LaTeX file.
     Cells are emitted in document order, each preceded by a `% <cell-id>` comment.
