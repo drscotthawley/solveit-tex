@@ -54,11 +54,6 @@ def parse_figure(line: str):
             caption = ""
     
     return {'caption': caption, 'images': images, 'label': label}
-from pyskills import allow 
-
-allow(export_ipynb_to_tex)
-allow(current_to_pdf)
-allow(compile_latex)
 def make_figure(fig_dict: dict):
     "Generate LaTeX figure environment from image specs."
     images, caption, label = fig_dict['images'],  fig_dict.get('caption', ''), fig_dict.get('label', '')
@@ -202,3 +197,8 @@ async def current_to_pdf():
     export_ipynb_to_tex(path)
     display(HTML(f'<br>'))
     compile_latex(path.replace('.ipynb', '.tex'))
+from pyskills import allow 
+
+allow(export_ipynb_to_tex)
+allow(current_to_pdf)
+allow(compile_latex)
