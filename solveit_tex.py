@@ -30,8 +30,9 @@ def parse_figure(line: str):
     
     images = [{'path': p, 'width': width} if width else {'path': p} for p in paths]
     return {'caption': caption, 'images': images, 'label': label}
-def make_figure(images: list[dict], caption: str = "", label: str = ""):
+def make_figure(fig_dict: dict):
     "Generate LaTeX figure environment from image specs."
+    images, caption, label = fig_dict['images'],  fig_dict.get('caption', ''), fig_dict.get('label', '')
     lines = ['\\begin{figure}[htbp]', '\\centering']  # Start figure environment
     for img in images:
         width_opt = f'[width={img["width"]}]' if 'width' in img else '[width=\\linewidth]' # Add width if specified, defalt to linewidth
