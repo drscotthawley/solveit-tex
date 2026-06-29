@@ -8,29 +8,27 @@ def get_private_url(path: str):
     path = os.path.abspath(path)
     return f"https://{server}.solve.it.com{path.replace('/app/data', '/static')}"
 def export_ipynb_to_tex(ipynb_path: str, output_path: str = None):
-    "Export a Solveit dialog (.ipynb) to a compilable LaTeX file."
-    
+    """Export a Solveit dialog (.ipynb) to a compilable LaTeX file.
+    Cells are emitted in document order, each preceded by a `% <cell-id>` comment.
+    The `## Abstract` cell emits `\begin{document}`, dividing preamble from document body."""
+
     ipynb_path = os.path.expanduser(ipynb_path)
     output_path = os.path.expanduser(output_path) if output_path else Path(ipynb_path).with_suffix('.tex')
 
     nb = json.loads(Path(ipynb_path).read_text())
-    preamble_lines = []
-    body_lines = []
-    past_abstract = False
+    out = []
 
     for cell in nb['cells']:
         content = ''.join(cell['source'])
 
-        if cell['cell_type'] != 'raw' and '#| export' not in content:
-            continue
-
-        if cell['cell_type'] == 'raw' and '#| export' not in content:
+        if '#| export' not in content:
             continue
 
         filtered = '\n'.join(l for l in content.split('\n') if not l.startswith('#| '))
+        out.append(f'% {cell["id"]}')
 
-        if cell['cell_type'] == 'raw' and not past_abstract:
-            preamble_lines.append(filtered)
+        if cell['cell_type'] == 'raw':
+            out.append(filtered)
             continue
 
         lines = filtered.split('\n')
@@ -39,45 +37,42 @@ def export_ipynb_to_tex(ipynb_path: str, output_path: str = None):
             line = lines[i]
 
             if line.startswith('# ') and not line.startswith('## '):
-                preamble_lines.append(f'\\title{{{line[2:].strip()}}}\n')
+                out.append(f'\\title{{{line[2:].strip()}}}\n')
             elif line.startswith('\\author{'):
-                preamble_lines.append(line)
+                out.append(line)
                 while i < len(lines) and not lines[i].strip().endswith('}'):
                     i += 1
                     if i < len(lines):
-                        preamble_lines.append(lines[i])
-                preamble_lines.append('\\begin{document}\n\\maketitle\n')
+                        out.append(lines[i])
             elif line == '## Abstract':
-                preamble_lines.append('\\begin{abstract}\n')
+                out.append('\\begin{document}\n\n\\maketitle\n')
+                out.append('\\begin{abstract}\n')
                 i += 1
                 while i < len(lines) and not lines[i].startswith('## '):
-                    preamble_lines.append(lines[i])
+                    out.append(lines[i])
                     i += 1
-                preamble_lines.append('\\end{abstract}\n')
-                past_abstract = True
+                out.append('\\end{abstract}\n')
                 continue
             elif line == '## References':
-                body_lines.append('\\small\n')
+                out.append('\\small\n')
                 bib_match = re.search(r'(\w+)\.bib', content)
                 if bib_match:
-                    body_lines.append(f'\\bibliographystyle{{unsrt}}\n\\bibliography{{{bib_match.group(1)}}}\n')
-                # Skip all lines in References section until next section or end
+                    out.append(f'\\bibliographystyle{{unsrt}}\n\\bibliography{{{bib_match.group(1)}}}\n')
                 i += 1
                 while i < len(lines) and not lines[i].startswith('## '):
                     i += 1
                 continue
             elif line.startswith('### '):
-                body_lines.append(f'\\subsection{{{line[4:].strip()}}}\n')
+                out.append(f'\\subsection{{{line[4:].strip()}}}\n')
             elif line.startswith('## '):
-                body_lines.append(f'\\section{{{line[3:].strip()}}}\n')
+                out.append(f'\\section{{{line[3:].strip()}}}\n')
             else:
-                body_lines.append(line)
+                out.append(line)
 
             i += 1
 
     final = '\\documentclass{article}\n\n'
-    final += '\n'.join(preamble_lines) + '\n\n'
-    final += '\n'.join(body_lines) + '\n\n'
+    final += '\n'.join(out) + '\n\n'
     final += '\\end{document}\n'
     Path(output_path).write_text(final)
     print(f'Created {output_path}')
@@ -128,6 +123,77 @@ def compile_latex(tex_file: str, cwd: str = '.'):
     print(f"PDF url: {pdf_url}")
     sys.stdout.flush() 
     display(HTML(f'<a href="{pdf_url}" target="_blank">{pdf_url}</a>'))
+def export_ipynb_to_tex(ipynb_path: str, output_path: str = None):
+    r"""Export a Solveit dialog (.ipynb) to a compilable LaTeX file.
+    Cells are emitted in document order, each preceded by a `% <cell-id>` comment.
+    The `## Abstract` cell emits `\begin{document}`, dividing preamble from document body."""
+
+    ipynb_path = os.path.expanduser(ipynb_path)
+    output_path = os.path.expanduser(output_path) if output_path else Path(ipynb_path).with_suffix('.tex')
+
+    nb = json.loads(Path(ipynb_path).read_text())
+    out = []
+
+    for cell in nb['cells']:
+        content = ''.join(cell['source'])
+
+        if '#| export' not in content:
+            continue
+
+        filtered = '\n'.join(l for l in content.split('\n') if not l.startswith('#| '))
+        out.append(f'% {cell["id"]}')
+
+        if cell['cell_type'] == 'raw':
+            out.append(filtered)
+            continue
+
+        lines = filtered.split('\n')
+        i = 0
+        while i < len(lines):
+            line = lines[i]
+
+            if line.startswith('# ') and not line.startswith('## '):
+                out.append(f'\\title{{{line[2:].strip()}}}\n')
+            elif line.startswith('\\author{'):
+                out.append(line)
+                while i < len(lines) and not lines[i].strip().endswith('}'):
+                    i += 1
+                    if i < len(lines):
+                        out.append(lines[i])
+            elif line == '## Abstract':
+                out.append('\\begin{document}\n\n\\maketitle\n')
+                out.append('\\begin{abstract}\n')
+                i += 1
+                while i < len(lines) and not lines[i].startswith('## '):
+                    out.append(lines[i])
+                    i += 1
+                out.append('\\end{abstract}\n')
+                continue
+            elif line == '## References':
+                out.append('\\small\n')
+                bib_match = re.search(r'(\w+)\.bib', content)
+                if bib_match:
+                    out.append(f'\\bibliographystyle{{unsrt}}\n\\bibliography{{{bib_match.group(1)}}}\n')
+                i += 1
+                while i < len(lines) and not lines[i].startswith('## '):
+                    i += 1
+                continue
+            elif line.startswith('### '):
+                out.append(f'\\subsection{{{line[4:].strip()}}}\n')
+            elif line.startswith('## '):
+                out.append(f'\\section{{{line[3:].strip()}}}\n')
+            else:
+                out.append(line)
+
+            i += 1
+
+    final = '\\documentclass{article}\n\n'
+    final += '\n'.join(out) + '\n\n'
+    final += '\\end{document}\n'
+    Path(output_path).write_text(final)
+    print(f'Created {output_path}')
+    output_url = get_private_url(output_path)
+    display(HTML(f'<a href="{output_url}" target="_blank">{output_url}</a>'))
 async def current_to_pdf():
     """
     Wrapper that converts the current dialogue to PDF and prints the private URL for it.
