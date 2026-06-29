@@ -103,6 +103,10 @@ compile_latex('neurips_2026.tex', cwd='.')
 "
 ```
 
+### Suggested Hotkey: Cmd+Shift+P 
+Copy the  `CRAFT.js` settings to your paper directory or your home directory in order to enable compilation via Cmd-Shift-P.
+That will create a dialog message that executes the conversion and gives you the URL(s) to view it. 
+
 ### Future Plans (Currently Unsupported)
 You can always just write raw LaTeX and it'll go through fine. Question is whether you want to see anything meaningful in SolveIT also,.
 Interoperability between solveit & latex currently does *not* include...
