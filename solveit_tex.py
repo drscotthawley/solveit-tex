@@ -8,7 +8,7 @@ def get_private_url(path: str):
     path = os.path.abspath(path)
     return f"https://{server}.solve.it.com{path.replace('/app/data', '/static')}"
 def parse_figure(line: str):
-    """Parse markdown figure syntax with multiple images on one line: ![alt1](img1.png) ![alt2](img2.png)\{width=45% #fig:label}
+    r"""Parse markdown figure syntax with multiple images on one line: ![alt1](img1.png) ![alt2](img2.png)\{width=45% #fig:label}
      Images on one line get grouped into a single figure, with the final caption and label being the one used for the group"""
     import re
     
