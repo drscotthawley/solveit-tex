@@ -8,33 +8,44 @@ def get_private_url(path: str):
     path = os.path.abspath(path)
     return f"https://{server}.solve.it.com{path.replace('/app/data', '/static')}"
 def parse_figure(line: str):
-    """Parse markdown figure syntax with (potentially) multiple images on one line: ![alt1](img1.png){width=45%} ![alt2](img2.png) ![Caption](img3.png){#fig:label}
+    """Parse markdown figure syntax with multiple images on one line: ![alt1](img1.png) ![alt2](img2.png)\{width=45% #fig:label}
      Images on one line get grouped into a single figure, with the final caption and label being the one used for the group"""
     import re
+    
+    # Look for escaped attributes at the end: \{...}
+    attrs = ''
+    attr_match = re.search(r'\\\{([^}]*)\}\s*$', line)
+    if attr_match:
+        attrs = attr_match.group(1)
+        line = line[:attr_match.start()]  # Remove the attributes part
+    
     # Find all image patterns on the line
-    pattern = r'!\[([^\]]*)\]\(([^)]+)\)(?:\{([^}]*)\})?'
+    pattern = r'!\[([^\]]*)\]\(([^)]+)\)'
     matches = re.findall(pattern, line.strip())
     
     if not matches: return None
     
     images = []
     caption = ""
-    label = None
     
-    for i, (alt, path, attrs) in enumerate(matches):
-        attrs = attrs or ''
-        width_m = re.search(r'width=([^\s#]+)', attrs)
-        label_m = re.search(r'#fig:([^\s}]+)', attrs)
-        width = width_m.group(1) if width_m else None
-        
+    for i, (alt, path) in enumerate(matches):
         img = {'path': path.strip()}
-        if width: img['width'] = width
         images.append(img)
         
         # Last image sets the caption and label
         if i == len(matches) - 1:
             caption = alt
-            label = label_m.group(1) if label_m else None
+    
+    # Extract width and label from attributes
+    width_m = re.search(r'width=([^\s#]+)', attrs)
+    label_m = re.search(r'#fig:([^\s}]+)', attrs)
+    width = width_m.group(1) if width_m else None
+    label = label_m.group(1) if label_m else None
+    
+    # Apply width to all images if specified
+    if width:
+        for img in images:
+            img['width'] = width
     
     # If caption is just a filename, treat as no caption
     if caption:
