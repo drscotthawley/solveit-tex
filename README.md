@@ -111,7 +111,7 @@ That will create a dialog message that executes the conversion and gives you the
 You can always just write raw LaTeX and it'll go through fine. Question is whether you want to see anything meaningful in SolveIT also,.
 Interoperability between solveit & latex currently does *not* include...
 
-- [ ] Figures, 
+- [X] Figures. Multiple figures on one line get grouped together in one figure, final caption "wins".
 - [ ] tables
 - [ ] numbering equations
 
