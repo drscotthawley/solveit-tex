@@ -112,8 +112,8 @@ You can always just write raw LaTeX and it'll go through fine. Question is wheth
 Interoperability between solveit & latex currently does *not* include...
 
 - [X] Figures. Multiple figures on one line get grouped together in one figure, final caption "wins".
-- [ ] tables
-- [ ] numbering equations
+- [X] Tables. But needs documentation
+- [ ] Numbering equations
 
 
 ## License
