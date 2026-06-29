@@ -7,6 +7,41 @@ def get_private_url(path: str):
     if not server: raise ValueError("PRIVATE_DOMAIN not set")
     path = os.path.abspath(path)
     return f"https://{server}.solve.it.com{path.replace('/app/data', '/static')}"
+def make_figure(images: list[dict], caption: str = "", label: str = ""):
+    "Generate LaTeX figure environment from image specs."
+    lines = ['\\begin{figure}[htbp]', '\\centering']  # Start figure environment
+    for img in images:
+        width_opt = f'[width={img["width"]}]' if 'width' in img else ''  # Add width if specified
+        lines.append(f'\\includegraphics{width_opt}{{{img["path"]}}}')  # Include the image
+    if caption: lines.append(f'\\caption{{{caption}}}')  # Add caption if provided
+    if label: lines.append(f'\\label{{fig:{label}}}')  # Add label if provided
+    lines.append('\\end{figure}')  # Close figure environment
+    return '\n'.join(lines)
+
+def parse_figure(line: str):
+    "Parse markdown figure syntax: ![caption](path1,path2){width=X% #fig:label}"
+    import re
+    m = re.match(r'^!\[([^\]]*)\]\(([^)]+)\)(?:\{([^}]*)\})?$', line.strip())
+    if not m: return None
+    
+    caption = m.group(1)
+    paths = [p.strip() for p in m.group(2).split(',')]
+    attrs = m.group(3) or ''
+    
+    # If caption is just a filename (matches any of the paths), treat as no caption
+    if caption:
+        path_basenames = [Path(p).name for p in paths]
+        if caption in path_basenames or caption in paths:
+            caption = ""
+    
+    width_m = re.search(r'width=([^\s#]+)', attrs)
+    label_m = re.search(r'#fig:([^\s}]+)', attrs)
+    width = width_m.group(1) if width_m else None
+    label = label_m.group(1) if label_m else None
+    
+    images = [{'path': p, 'width': width} if width else {'path': p} for p in paths]
+    return {'caption': caption, 'images': images, 'label': label}
+
 def export_ipynb_to_tex(ipynb_path: str, output_path: str = None):
     r"""Export a Solveit dialog (.ipynb) to a compilable LaTeX file.
     Cells are emitted in document order, each preceded by a `% <cell-id>` comment.
@@ -67,11 +102,15 @@ def export_ipynb_to_tex(ipynb_path: str, output_path: str = None):
             elif line.startswith('## '):
                 out.append(f'\\section{{{line[3:].strip()}}}\n')
             else:
-                out.append(line)
+                fig = parse_figure(line)
+                if fig:
+                    out.append(make_figure(fig['images'], fig['caption'], fig['label']))
+                else:
+                    out.append(line)
 
             i += 1
 
-    final = '\\documentclass{article}\n\n'
+    final = '\\documentclass{article}\n\\usepackage{graphicx}\n\n'
     final += '\n'.join(out) + '\n\n'
     final += '\\end{document}\n'
     Path(output_path).write_text(final)
