@@ -1,12 +1,19 @@
 import os, subprocess, json, re, sys
 from pathlib import Path
 from IPython.display import HTML, display
+from dialoghelper.solveitskill import curr_dialog, realpath
+
+async def get_curr_dialog_path():
+    name = (await curr_dialog())['name']
+    return f'{await realpath("/")}/{name}.ipynb'
+
 def get_private_url(path: str):
     "Get the private URL for a file on the solveit cloud instance"
     server = os.getenv('PRIVATE_DOMAIN')
     if not server: raise ValueError("PRIVATE_DOMAIN not set")
     path = os.path.abspath(path)
     return f"https://{server}.solve.it.com{path.replace('/app/data', '/static')}"
+
 def parse_figure(line: str):
     r"""Parse markdown figure syntax with multiple images on one line: ![alt1](img1.png) ![alt2](img2.png)\{width=45% #fig:label}
      Images on one line get grouped into a single figure, with the final caption and label being the one used for the group"""
@@ -54,6 +61,7 @@ def parse_figure(line: str):
             caption = ""
     
     return {'caption': caption, 'images': images, 'label': label}
+
 def make_figure(fig_dict: dict):
     "Generate LaTeX figure environment from image specs."
     images, caption, label = fig_dict['images'],  fig_dict.get('caption', ''), fig_dict.get('label', '')
@@ -65,6 +73,7 @@ def make_figure(fig_dict: dict):
     if label: lines.append(f'\\label{{fig:{label}}}')  # Add label if provided
     lines.append('\\end{figure}')  # Close figure environment
     return '\n'.join(lines)
+
 def parse_table(lines):
     """Parse markdown table with optional caption. Returns table_dict or None."""
     if isinstance(lines, str): lines = lines.split('\n')
@@ -84,8 +93,10 @@ def parse_table(lines):
         m = re.match(r'\s*\*([^*]+)\*(?:\s*\\\{#([^}]+)\})?', lines[i])
         if m: caption, label = m.group(1), m.group(2)
     return {'headers': headers, 'rows': rows, 'alignments': aligns, 'caption': caption, 'label': label}
+
 def md_to_latex_bold(text: str):
     return re.sub(r'\*\*([^*]+)\*\*', r'\\textbf{\1}', text)
+
 def make_table(tbl: dict):
     "Generate LaTeX table environment from parsed table dict."
     col_spec = ''.join(tbl['alignments'])
@@ -99,6 +110,7 @@ def make_table(tbl: dict):
     if tbl.get('label'): lines.append(f'\\label{{tab:{tbl["label"]}}}')
     lines.append('\\end{table}')
     return '\n'.join(lines)
+
 def export_ipynb_to_tex(ipynb_path: str, output_path: str = None):
     r"""Export a Solveit dialog (.ipynb) to a compilable LaTeX file.
     Cells are emitted in document order, each preceded by a `% <cell-id>` comment.
@@ -189,6 +201,7 @@ def export_ipynb_to_tex(ipynb_path: str, output_path: str = None):
     print(f'Created {output_path}')
     output_url = get_private_url(output_path)
     display(HTML(f'<a href="{output_url}" target="_blank">{output_url}</a>'))
+
 def compile_latex(tex_file: str, cwd: str = '.'):
     "Run full LaTeX compilation: pdflatex → bibtex → pdflatex → pdflatex"
 
@@ -234,6 +247,7 @@ def compile_latex(tex_file: str, cwd: str = '.'):
     print(f"PDF url: {pdf_url}")
     sys.stdout.flush() 
     display(HTML(f'<a href="{pdf_url}" target="_blank">{pdf_url}</a>'))
+
 async def current_to_pdf():
     """
     Wrapper that converts the current dialogue to PDF and prints the private URL for it.
@@ -246,6 +260,7 @@ async def current_to_pdf():
     export_ipynb_to_tex(path)
     display(HTML(f'<br>'))
     compile_latex(path.replace('.ipynb', '.tex'))
+
 from pyskills import allow 
 
 allow(export_ipynb_to_tex)
