@@ -1,9 +1,9 @@
 import os, subprocess, json, re, sys
 from pathlib import Path
 from IPython.display import HTML, display
-from dialoghelper.solveitskill import curr_dialog, realpath
 
 async def get_curr_dialog_path():
+    from dialoghelper.solveitskill import curr_dialog, realpath
     name = (await curr_dialog())['name']
     return f'{await realpath("/")}/{name}.ipynb'
 
@@ -253,11 +253,7 @@ async def current_to_pdf():
     Wrapper that converts the current dialogue to PDF and prints the private URL for it.
     Usage: await current_to_pdf()
     """
-    from dialoghelper.solveitskill import curr_dialog, realpath
-
-    name = (await curr_dialog())['name']
-    path = f'{await realpath("/")}/{name}.ipynb'
-    export_ipynb_to_tex(path)
+    export_ipynb_to_tex(curr_dialog_path)
     display(HTML(f'<br>'))
     compile_latex(path.replace('.ipynb', '.tex'))
 
