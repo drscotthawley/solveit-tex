@@ -111,6 +111,48 @@ def make_table(tbl: dict):
     lines.append('\\end{table}')
     return '\n'.join(lines)
 
+async def export_ordered(curr_path=None, output_path=None):
+    """Uses user-defined syntax '#| replaces: <msg_id>' to replace earlier messages with later ones 
+    msg_id be obtained in the GUI by pressing the link button.
+    Valid syntax usages (with or without colons): 
+        #| replaces: https://serene-vision-dives-ildq3w.solve.it.com/dialog_?name=solveit-tex/solveit-tex#_a0d44aac
+        #| replaces _a0d44aac
+    """
+    if curr_path is None: curr_path = await get_curr_dialog_path()
+    if output_path is None: output_path = curr_path.replace('.ipynb', '-out.ipynb')
+    nb = json.loads(Path(curr_path).read_text())
+    
+    # Pass 1: find replacements {target_id -> cell}, last-wins
+    replacements = {}
+    for cell in nb['cells']:
+        content = ''.join(cell['source'])
+        if not content.lstrip().startswith('#| export'): continue
+        for line in content.split('\n'):
+            if line.startswith('#| replaces:'):
+                target = line.split('#')[-1].strip('_')
+                replacements[target] = cell
+    
+    # Pass 2: walk in order, apply replacements, keep only exported
+    out_cells = []
+    for cell in nb['cells']:
+        content = ''.join(cell['source'])
+        if not content.lstrip().startswith('#| export'): continue
+        cid = cell.get('id', '').strip('_')
+        if cid in replacements:
+            rcell = replacements[cid]
+            rcontent = '\n'.join(l for l in ''.join(rcell['source']).split('\n') if not l.startswith('#| replaces'))
+            lines = rcontent.split('\n')
+            rcontent = [l + '\n' for l in lines[:-1]] + [lines[-1]]
+            out_cells.append({**rcell, 'source': rcontent})
+        else:
+            if any(l.startswith('#| replaces') for l in content.split('\n')): continue  # don't re-add replacements
+            out_cells.append(cell)
+    
+    nb['cells'] = out_cells
+    Path(output_path).write_text(json.dumps(nb, indent=1))
+    print(f'Exported {len(out_cells)} cells to {output_path}')
+    return output_path 
+
 def export_ipynb_to_tex(ipynb_path: str, output_path: str = None, ordered=True):
     r"""Export a Solveit dialog (.ipynb) to a compilable LaTeX file.
     Cells are emitted in document order, each preceded by a `% <cell-id>` comment.
@@ -118,7 +160,7 @@ def export_ipynb_to_tex(ipynb_path: str, output_path: str = None, ordered=True):
 
     ipynb_path = os.path.expanduser(ipynb_path)
 
-    if ordered:  # Export preserving ordering. Writes to -out.ipynb first 
+    if ordered:  # Export preserving "#| replaces" ordering. Writes to -out.ipynb first. That becomes the input file 
         ipynb_path = export_ordered(ipynb_path)
         
     output_path = os.path.expanduser(output_path) if output_path else Path(ipynb_path).with_suffix('.tex')
