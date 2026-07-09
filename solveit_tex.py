@@ -111,12 +111,16 @@ def make_table(tbl: dict):
     lines.append('\\end{table}')
     return '\n'.join(lines)
 
-def export_ipynb_to_tex(ipynb_path: str, output_path: str = None):
+def export_ipynb_to_tex(ipynb_path: str, output_path: str = None, ordered=True):
     r"""Export a Solveit dialog (.ipynb) to a compilable LaTeX file.
     Cells are emitted in document order, each preceded by a `% <cell-id>` comment.
     The `## Abstract` cell emits `\begin{document}`, dividing preamble from document body."""
 
     ipynb_path = os.path.expanduser(ipynb_path)
+
+    if ordered:  # Export preserving ordering. Writes to -out.ipynb first 
+        ipynb_path = export_ordered(ipynb_path)
+        
     output_path = os.path.expanduser(output_path) if output_path else Path(ipynb_path).with_suffix('.tex')
 
     nb = json.loads(Path(ipynb_path).read_text())
