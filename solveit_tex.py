@@ -320,7 +320,7 @@ def create_submission_package(project_dir:str='.'):
     if tmp_dir.exists(): shutil.rmtree(tmp_dir)
     tmp_dir.mkdir(parents=True)
     files = [Path(project_path) / f for f in fd(project_path, ext=extensions)]
-    print("Files\n",files)
+    print("Files included:\n",[str(f) for f in files])
     for f in files:  
         dest = tmp_dir / f.relative_to(project_path)
         dest.parent.mkdir(parents=True, exist_ok=True)
