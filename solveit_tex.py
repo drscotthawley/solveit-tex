@@ -311,17 +311,20 @@ async def current_to_pdf():
 def create_submission_package(project_dir:str='.'): 
     "Make a .tar.gz archive suitable for submission to arxiv, etc"
     import shutil, tarfile
+    from rgapi.skill import fd
+    
     extensions = ['tex','png','jpg','tikz','eps','sty','bib','bst']
     project_path = Path(project_dir).expanduser().resolve()
     project_name = project_path.name
     tmp_dir = Path(f'/tmp/{project_name}')
     if tmp_dir.exists(): shutil.rmtree(tmp_dir)
     tmp_dir.mkdir(parents=True)
-    for f in Path(project_path).rglob('*'):  # check files in project path 
-        if f.is_file() and f.suffix.lstrip('.') in extensions:
-            dest = tmp_dir / f.relative_to(project_path)
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(f, dest)
+    files = [Path(project_path) / f for f in fd(project_path, ext=extensions)]
+    print("Files\n",files)
+    for f in files:  
+        dest = tmp_dir / f.relative_to(project_path)
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(f, dest)
     pkg_path = Path(project_path) / f'{project_name}.tar.gz'
     with tarfile.open(pkg_path, 'w:gz') as tar:
         tar.add(tmp_dir, arcname=project_name)
@@ -333,4 +336,5 @@ from pyskills import allow
 
 allow(export_ipynb_to_tex)
 allow(current_to_pdf)
-allow(compile_latex)
+allow(compile_latex) 
+allow(create_submission_package)
