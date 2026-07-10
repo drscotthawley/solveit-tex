@@ -206,14 +206,14 @@ def export_ipynb_to_tex(ipynb_path: str, output_path: str = None, ordered=True):
                 continue
             elif line == '## References':
                 out.append('\\small\n')
-                bibstyle_match = re.search(r'\\bibliographystyle\{[^}]+\}', content)
-                if bibstyle_match:
-                    out.append(bibstyle_match.group(0) + '\n')
-                bib_match = re.search(r'(\w+)\.bib', content)
-                if bib_match:
-                    out.append(f'\\bibliography{{{bib_match.group(1)}}}\n')
                 i += 1
                 while i < len(lines) and not lines[i].startswith('## '):
+                    l = lines[i]
+                    if l.strip().startswith('\\bibliographystyle'):
+                        out.append(l + '\n')
+                    bib_match = re.search(r'(\w+)\.bib', l)
+                    if bib_match:
+                        out.append(f'\\bibliography{{{bib_match.group(1)}}}\n')
                     i += 1
                 continue
             elif line.startswith('### '):
