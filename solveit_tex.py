@@ -299,9 +299,10 @@ async def current_to_pdf():
     Wrapper that converts the current dialogue to PDF and prints the private URL for it.
     Usage: await current_to_pdf()
     """
+    curr_dialog_path = await get_curr_dialog_path()
     export_ipynb_to_tex(curr_dialog_path)
     display(HTML(f'<br>'))
-    compile_latex(path.replace('.ipynb', '.tex'))
+    compile_latex(curr_dialog_path.replace('.ipynb', '.tex'))
 
 from pyskills import allow 
 
