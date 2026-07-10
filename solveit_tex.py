@@ -208,7 +208,8 @@ def export_ipynb_to_tex(ipynb_path: str, output_path: str = None, ordered=True):
                 out.append('\\small\n')
                 bib_match = re.search(r'(\w+)\.bib', content)
                 if bib_match:
-                    out.append(f'\\bibliographystyle{{unsrt}}\n\\bibliography{{{bib_match.group(1)}}}\n')
+                    #out.append(f'\\bibliographystyle{{unsrt}}\n')
+                    out.append(f'\\bibliography{{{bib_match.group(1)}}}\n')
                 i += 1
                 while i < len(lines) and not lines[i].startswith('## '):
                     i += 1
