@@ -313,7 +313,7 @@ def create_submission_package(project_path:str='.'):
     import shutil, tarfile
     extensions = ['tex','png','jpg','tikz','eps','sty','bib','bst']
     project_path = Path(project_path).expanduser().resolve()
-    project_name = Path(project_path).name
+    project_name = project_path.name
     tmp_dir = Path(f'/tmp/{project_name}')
     if tmp_dir.exists(): shutil.rmtree(tmp_dir)
     tmp_dir.mkdir(parents=True)
