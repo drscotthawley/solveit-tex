@@ -111,14 +111,13 @@ def make_table(tbl: dict):
     lines.append('\\end{table}')
     return '\n'.join(lines)
 
-async def export_ordered(curr_path=None, output_path=None):
+def export_ordered(curr_path, output_path=None):
     """Uses user-defined syntax '#| replaces: <msg_id>' to replace earlier messages with later ones 
     msg_id be obtained in the GUI by pressing the link button.
     Valid syntax usages (with or without colons): 
         #| replaces: https://serene-vision-dives-ildq3w.solve.it.com/dialog_?name=solveit-tex/solveit-tex#_a0d44aac
         #| replaces _a0d44aac
     """
-    if curr_path is None: curr_path = await get_curr_dialog_path()
     if output_path is None: output_path = curr_path.replace('.ipynb', '-out.ipynb')
     nb = json.loads(Path(curr_path).read_text())
     
@@ -164,6 +163,7 @@ def export_ipynb_to_tex(ipynb_path: str, output_path: str = None, ordered=True):
         ipynb_path = export_ordered(ipynb_path)
         
     output_path = os.path.expanduser(output_path) if output_path else Path(ipynb_path).with_suffix('.tex')
+    if ordered: output_path = output_path.replace('-out.tex','.tex') 
 
     nb = json.loads(Path(ipynb_path).read_text())
     out = []
