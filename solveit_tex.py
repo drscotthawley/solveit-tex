@@ -308,11 +308,11 @@ async def current_to_pdf():
     display(HTML(f'<br>'))
     compile_latex(curr_dialog_path.replace('.ipynb', '.tex'))
 
-def create_submission_package(project_path:str='.'): 
+def create_submission_package(project_dir:str='.'): 
     "Make a .tar.gz archive suitable for submission to arxiv, etc"
     import shutil, tarfile
     extensions = ['tex','png','jpg','tikz','eps','sty','bib','bst']
-    project_path = Path(project_path).expanduser().resolve()
+    project_path = Path(project_dir).expanduser().resolve()
     project_name = project_path.name
     tmp_dir = Path(f'/tmp/{project_name}')
     if tmp_dir.exists(): shutil.rmtree(tmp_dir)

@@ -107,12 +107,13 @@ compile_latex('neurips_2026.tex', cwd='.')
 Copy the  `CRAFT.js` settings to your paper directory or your home directory in order to enable compilation via Cmd-Shift-P.
 That will create a dialog message that executes the conversion and gives you the URL(s) to view it. 
 
-### Future Plans (Currently Unsupported)
-You can always just write raw LaTeX and it'll go through fine. Question is whether you want to see anything meaningful in SolveIT also,.
-Interoperability between solveit & latex currently does *not* include...
+### Adding Features (WIP)
+You can always just write raw LaTeX and it'll go through fine. Question is whether you want to see anything meaningful in SolveIT also.
 
 - [X] Figures. Multiple figures on one line get grouped together in one figure, final caption "wins".
 - [X] Tables. But needs documentation
+- [X] Handling other bibliography styles 
+- [X] Creating a (.tar.gz) "submission package", e.g. for arXiv
 - [ ] Numbering equations
 
 
