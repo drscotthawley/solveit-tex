@@ -163,7 +163,8 @@ def export_ipynb_to_tex(ipynb_path: str, output_path: str = None, ordered=True):
         ipynb_path = export_ordered(ipynb_path)
         
     output_path = os.path.expanduser(output_path) if output_path else Path(ipynb_path).with_suffix('.tex')
-    if ordered: output_path = output_path.replace('-out.tex','.tex') 
+    if ordered: output_path = str(output_path).replace('-out.tex', '.tex')
+    print("output_path =",output_path)
 
     nb = json.loads(Path(ipynb_path).read_text())
     out = []
