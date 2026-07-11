@@ -14,53 +14,39 @@ def get_private_url(path: str):
     path = os.path.abspath(path)
     return f"https://{server}.solve.it.com{path.replace('/app/data', '/static')}"
 
-def parse_figure(line: str):
-    r"""Parse markdown figure syntax with multiple images on one line: ![alt1](img1.png) ![alt2](img2.png)\{width=45% #fig:label}
-     Images on one line get grouped into a single figure, with the final caption and label being the one used for the group"""
+def parse_figure(lines):
+    r"""Parse markdown figure: images + optional trailing *caption*\{attrs}. Per-attribute last-wins merge."""
     import re
-    
-    # Look for escaped attributes at the end: \{...}
-    attrs = ''
-    attr_match = re.search(r'\\\{([^}]*)\}\s*$', line)
-    if attr_match:
-        attrs = attr_match.group(1)
-        line = line[:attr_match.start()]  # Remove the attributes part
-    
-    # Find all image patterns on the line
-    pattern = r'!\[([^\]]*)\]\(([^)]+)\)'
-    matches = re.findall(pattern, line.strip())
-    
-    if not matches: return None
-    
-    images = []
-    caption = ""
-    
-    for i, (alt, path) in enumerate(matches):
-        img = {'path': path.strip()}
-        images.append(img)
-        
-        # Last image sets the caption and label
-        if i == len(matches) - 1:
-            caption = alt
-    
-    # Extract width and label from attributes
-    width_m = re.search(r'width=([^\s#]+)', attrs)
-    label_m = re.search(r'#fig:([^\s}]+)', attrs)
-    width = width_m.group(1) if width_m else None
-    label = label_m.group(1) if label_m else None
-    
-    # Apply width to all images if specified
-    if width:
-        for img in images:
-            img['width'] = width
-    
-    # If caption is just a filename, treat as no caption
-    if caption:
-        path_basenames = [Path(p['path']).name for p in images]
-        if caption in path_basenames or caption in [p['path'] for p in images]:
-            caption = ""
-    
-    return {'caption': caption, 'images': images, 'label': label}
+    from pathlib import Path
+    if isinstance(lines, str): lines = lines.split('\n')
+    lines = [l for l in lines if l.strip()]
+    if not lines: return None
+
+    def parse_attrs(s): return {
+        'width': (re.search(r'width=([^\s#]+)', s) or [None])[0] if re.search(r'width=([^\s#]+)', s) else None,
+        'label': re.search(r'#fig:([^\s}]+)', s).group(1) if re.search(r'#fig:([^\s}]+)', s) else None}
+
+    image_line = lines[0]
+    attrs = {}
+    m = re.search(r'\\\{([^}]*)\}\s*$', image_line)
+    if m: attrs = {k:v for k,v in parse_attrs(m.group(1)).items() if v}; image_line = image_line[:m.start()]
+
+    imgs = re.findall(r'!\[([^\]]*)\]\(([^)]+)\)', image_line.strip())
+    if not imgs: return None
+    images = [{'path': p.strip(), **({'width': attrs['width']} if 'width' in attrs else {})} for _, p in imgs]
+    caption = imgs[-1][0]
+    if caption in [Path(p['path']).name for p in images] + [p['path'] for p in images]: caption = ""
+
+    for trail in lines[1:]:
+        cm = re.match(r'\*([^*]+)\*(?:\s*\\\{([^}]*)\})?', trail.strip())
+        if not cm: continue
+        caption = cm.group(1)
+        if cm.group(2):
+            ta = {k:v for k,v in parse_attrs(cm.group(2)).items() if v}
+            if 'width' in ta: attrs['width'] = ta['width']; [img.update({'width': ta['width']}) for img in images]
+            if 'label' in ta: attrs['label'] = ta['label']
+
+    return {'caption': caption, 'images': images, 'label': attrs.get('label')}
 
 def make_figure(fig_dict: dict):
     "Generate LaTeX figure environment from image specs."
