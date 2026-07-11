@@ -94,7 +94,10 @@ def parse_table(lines):
     sep = [c.strip() for c in lines[1].split('|')[1:-1]]
     aligns = ['c' if c.startswith(':') and c.endswith(':') else 'r' if c.endswith(':') else 'l' for c in sep]
     headers = [c.strip() for c in lines[0].split('|')[1:-1]]
-    rows = [[c.strip() for c in r.split('|')[1:-1]] for r in lines[2:i]]
+    rows = []
+    for r in lines[2:i]:
+        if r.strip() == '| ---': rows.append(None)   # allow for midrules
+        else: rows.append([c.strip() for c in r.split('|')[1:-1]])
     if i < len(lines):
         m = re.match(r'\s*\*([^*]+)\*(?:\s*\\\{#([^}]+)\})?', lines[i])
         if m: caption, label = m.group(1), m.group(2)
@@ -120,7 +123,8 @@ def make_table(tbl: dict):
     lines.append(' & '.join(tbl['headers']) + r' \\')
     lines.append(r'\midrule')
     for row in tbl['rows']:
-        lines.append(' & '.join(md_to_latex_bold(cell) for cell in row) + r' \\')
+        if row is None: lines.append(r'\midrule')
+        else: lines.append(' & '.join(md_to_latex_bold(cell) for cell in row) + r' \\')
     lines.append(r'\bottomrule')
     lines.append(r'\end{tabular}')
     lines.append(r'\end{table}')
@@ -265,6 +269,7 @@ def export_ipynb_to_tex(ipynb_path: str, output_path: str = None, ordered=True):
     final = '\\documentclass{article}\n\\usepackage{graphicx}\n\\usepackage{booktabs}\n'
     final += '\n'.join(out) + '\n\n'
     final += '\\end{document}\n'
+    final = md_to_latex_italic(final)
     
     Path(output_path).write_text(final)
     print(f'Created {output_path}')
