@@ -106,6 +106,9 @@ def md_to_latex_bold(text: str):
 
 md_to_latex_bold('| 0.20 (champion) | **0.5151** | **0.4665** | **0.5327** | **0.6151** | 1749 |')
 
+def md_to_latex_italic(text: str):
+    return re.sub(r'\*([^*]+)\*', r'\\textit{\1}', text)
+
 def make_table(tbl: dict):
     "Generate LaTeX table environment from parsed table dict."
     col_spec = ''.join(tbl['alignments'])
@@ -262,6 +265,7 @@ def export_ipynb_to_tex(ipynb_path: str, output_path: str = None, ordered=True):
     final = '\\documentclass{article}\n\\usepackage{graphicx}\n\\usepackage{booktabs}\n'
     final += '\n'.join(out) + '\n\n'
     final += '\\end{document}\n'
+    
     Path(output_path).write_text(final)
     print(f'Created {output_path}')
     output_url = get_private_url(output_path)
