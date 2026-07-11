@@ -75,7 +75,10 @@ def make_figure(fig_dict: dict):
     return '\n'.join(lines)
 
 def parse_table(lines):
-    """Parse markdown table with optional caption above or below. Returns table_dict or None."""
+    """Parse markdown table with optional caption above or below. Returns table_dict or None.
+    Note: parse table doesn't care whether the caption comes first or last, *however* logic of the main export script
+    only triggers table conversion when the *first line* starts with "|".  So in Markdown, the caption needs to come last.
+    """
     if isinstance(lines, str): lines = lines.split('\n')
     start = 0
     while start < len(lines) and not lines[start].strip(): start += 1
