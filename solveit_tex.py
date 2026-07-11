@@ -75,11 +75,15 @@ def make_figure(fig_dict: dict):
     return '\n'.join(lines)
 
 def parse_table(lines):
-    """Parse markdown table with optional caption. Returns table_dict or None."""
+    """Parse markdown table with optional caption above or below. Returns table_dict or None."""
     if isinstance(lines, str): lines = lines.split('\n')
     start = 0
     while start < len(lines) and not lines[start].strip(): start += 1
     lines = lines[start:]
+    caption, label = '', None
+    if not lines[0].strip().startswith('|'):
+        m = re.match(r'\s*\*([^*]+)\*(?:\s*\\\{#([^}]+)\})?', lines[0])
+        if m: caption, label = m.group(1), m.group(2); lines = lines[1:]
     if not lines or not lines[0].startswith('|'): return None
     i = 0
     while i < len(lines) and lines[i].startswith('|'): i += 1
@@ -88,28 +92,34 @@ def parse_table(lines):
     aligns = ['c' if c.startswith(':') and c.endswith(':') else 'r' if c.endswith(':') else 'l' for c in sep]
     headers = [c.strip() for c in lines[0].split('|')[1:-1]]
     rows = [[c.strip() for c in r.split('|')[1:-1]] for r in lines[2:i]]
-    caption, label = '', None
     if i < len(lines):
         m = re.match(r'\s*\*([^*]+)\*(?:\s*\\\{#([^}]+)\})?', lines[i])
         if m: caption, label = m.group(1), m.group(2)
     return {'headers': headers, 'rows': rows, 'alignments': aligns, 'caption': caption, 'label': label}
 
+
 def md_to_latex_bold(text: str):
     return re.sub(r'\*\*([^*]+)\*\*', r'\\textbf{\1}', text)
+
+md_to_latex_bold('| 0.20 (champion) | **0.5151** | **0.4665** | **0.5327** | **0.6151** | 1749 |')
 
 def make_table(tbl: dict):
     "Generate LaTeX table environment from parsed table dict."
     col_spec = ''.join(tbl['alignments'])
-    lines = [f'\\begin{{table}}[htbp]', '\\centering', f'\\begin{{tabular}}{{{col_spec}}}', '\\hline']
-    lines.append(' & '.join(tbl['headers']) + ' \\\\')
-    lines.append('\\hline')
+    lines = [r'\begin{table}[htbp]', r'\centering']
+    if tbl.get('caption'): lines.append(r'\caption{' + tbl['caption'] + '}')
+    if tbl.get('label'): lines.append(r'\label{tab:' + tbl['label'] + '}')
+    lines.append(r'\begin{tabular}{' + col_spec + '}')
+    lines.append(r'\toprule')
+    lines.append(' & '.join(tbl['headers']) + r' \\')
+    lines.append(r'\midrule')
     for row in tbl['rows']:
-        lines.append(' & '.join(md_to_latex_bold(cell) for cell in row) + ' \\\\')
-    lines.extend(['\\hline', '\\end{tabular}'])
-    if tbl.get('caption'): lines.append(f'\\caption{{{tbl["caption"]}}}')
-    if tbl.get('label'): lines.append(f'\\label{{tab:{tbl["label"]}}}')
-    lines.append('\\end{table}')
+        lines.append(' & '.join(md_to_latex_bold(cell) for cell in row) + r' \\')
+    lines.append(r'\bottomrule')
+    lines.append(r'\end{tabular}')
+    lines.append(r'\end{table}')
     return '\n'.join(lines)
+
 
 def export_ordered(curr_path, output_path=None):
     """Uses user-defined syntax '#| replaces: <msg_id>' to replace earlier messages with later ones 
@@ -171,6 +181,8 @@ def export_ipynb_to_tex(ipynb_path: str, output_path: str = None, ordered=True):
 
     for cell in nb['cells']:
         content = ''.join(cell['source'])
+        content = md_to_latex_bold(content)
+
 
         if '#| export' not in content:
             continue
@@ -244,7 +256,7 @@ def export_ipynb_to_tex(ipynb_path: str, output_path: str = None, ordered=True):
 
             i += 1
 
-    final = '\\documentclass{article}\n\\usepackage{graphicx}\n\n'
+    final = '\\documentclass{article}\n\\usepackage{graphicx}\n\\usepackage{booktabs}\n'
     final += '\n'.join(out) + '\n\n'
     final += '\\end{document}\n'
     Path(output_path).write_text(final)
