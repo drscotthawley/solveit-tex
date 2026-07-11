@@ -177,14 +177,11 @@ def export_ipynb_to_tex(ipynb_path: str, output_path: str = None, ordered=True):
 
     nb = json.loads(Path(ipynb_path).read_text())
     out = []
-
+    title = 'TITLE NOT FOUND'
     for cell in nb['cells']:
         content = ''.join(cell['source'])
         content = md_to_latex_bold(content)
-
-
-        if '#| export' not in content:
-            continue
+        if '#| export' not in content: continue
 
         filtered = '\n'.join(l for l in content.split('\n') if not l.startswith('#| '))
         out.append(f'% {cell["id"]}')
@@ -197,16 +194,15 @@ def export_ipynb_to_tex(ipynb_path: str, output_path: str = None, ordered=True):
         i = 0
         while i < len(lines):
             line = lines[i]
-
             if line.startswith('# ') and not line.startswith('## '):
-                out.append(f'\\title{{{line[2:].strip()}}}\n')
+                title = f'{line[2:].strip()}'
             elif line.startswith('\\author{'):
                 out.append(line)
                 while i < len(lines) and not lines[i].strip().endswith('}'):
                     i += 1
-                    if i < len(lines):
-                        out.append(lines[i])
+                    if i < len(lines): out.append(lines[i])
             elif line == '## Abstract':
+                out.append(f'\\title{{{title}}}\n')
                 out.append('\\begin{document}\n\n\\maketitle\n')
                 out.append('\\begin{abstract}\n')
                 i += 1
