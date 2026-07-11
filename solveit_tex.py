@@ -15,16 +15,16 @@ def get_private_url(path: str):
     return f"https://{server}.solve.it.com{path.replace('/app/data', '/static')}"
 
 def parse_figure(lines):
-    r"""Parse markdown figure: images + optional trailing *caption*\{attrs}. Per-attribute last-wins merge."""
+    r"""Parse markdown figure: images + optional *caption*\{attrs} inline or trailing. Per-attribute last-wins merge."""
     import re
     from pathlib import Path
     if isinstance(lines, str): lines = lines.split('\n')
     lines = [l for l in lines if l.strip()]
     if not lines: return None
 
-    def parse_attrs(s): return {
-        'width': (re.search(r'width=([^\s#]+)', s) or [None])[0] if re.search(r'width=([^\s#]+)', s) else None,
-        'label': re.search(r'#fig:([^\s}]+)', s).group(1) if re.search(r'#fig:([^\s}]+)', s) else None}
+    def parse_attrs(s):
+        w, l = re.search(r'width=([^\s#]+)', s), re.search(r'#fig:([^\s}]+)', s)
+        return {'width': w.group(1) if w else None, 'label': l.group(1) if l else None}
 
     image_line = lines[0]
     attrs = {}
@@ -37,8 +37,10 @@ def parse_figure(lines):
     caption = imgs[-1][0]
     if caption in [Path(p['path']).name for p in images] + [p['path'] for p in images]: caption = ""
 
-    for trail in lines[1:]:
-        cm = re.match(r'\*([^*]+)\*(?:\s*\\\{([^}]*)\})?', trail.strip())
+    # Caption candidates: inline remainder (after images) + trailing lines
+    remainder = re.sub(r'!\[([^\]]*)\]\(([^)]+)\)', '', image_line).strip()
+    for text in [remainder] + [l.strip() for l in lines[1:]]:
+        cm = re.search(r'\*([^*]+)\*(?:\s*\\\{([^}]*)\})?', text)
         if not cm: continue
         caption = cm.group(1)
         if cm.group(2):
@@ -47,6 +49,7 @@ def parse_figure(lines):
             if 'label' in ta: attrs['label'] = ta['label']
 
     return {'caption': caption, 'images': images, 'label': attrs.get('label')}
+
 
 def make_figure(fig_dict: dict):
     "Generate LaTeX figure environment from image specs."
