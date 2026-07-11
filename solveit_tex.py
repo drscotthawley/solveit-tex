@@ -96,7 +96,7 @@ def parse_table(lines):
     headers = [c.strip() for c in lines[0].split('|')[1:-1]]
     rows = []
     for r in lines[2:i]:
-        if r.strip() == '| ---': rows.append(None)   # allow for midrules
+        if r.strip().startswith('| ---'): rows.append(None)   # allow for midrules
         else: rows.append([c.strip() for c in r.split('|')[1:-1]])
     if i < len(lines):
         m = re.match(r'\s*\*([^*]+)\*(?:\s*\\\{#([^}]+)\})?', lines[i])
@@ -128,7 +128,7 @@ def make_table(tbl: dict):
     lines.append(r'\bottomrule')
     lines.append(r'\end{tabular}')
     lines.append(r'\end{table}')
-    return '\n'.join(lines)
+    return md_to_latex_italic('\n'.join(lines))
 
 
 def export_ordered(curr_path, output_path=None):
