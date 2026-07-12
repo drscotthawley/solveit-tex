@@ -63,7 +63,9 @@ def make_figure(fig_dict: dict):
     lines.append('\\end{figure}')  # Close figure environment
     return '\n'.join(lines)
 
-def make_list(lines: list):
+def make_list(lines: list, 
+              nosep=True, # nosep: True means don't add vertical space between list items.
+              ):    
     "Convert markdown list lines to LaTeX itemize/enumerate environment."
     import re 
     env = 'itemize' # default to bulleted lists. detect if they're numbered, below
@@ -74,6 +76,7 @@ def make_list(lines: list):
             if re.match(r'\d+\.', m.group(1)): env = 'enumerate'
             processed.append(r'\item ' + line[len(m.group(1)):])
     out = [fr'\begin{{{env}}}']
+    if nosep: out[0] += '[nosep]'
     out.extend(processed)
     out.append(fr'\end{{{env}}}')
     return '\n'.join(out)
