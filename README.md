@@ -112,6 +112,7 @@ You can always just write raw LaTeX and it'll go through fine. Question is wheth
 
 - [X] Figures. Multiple figures on one line get grouped together in one figure, final caption "wins".
 - [X] Tables. But needs documentation
+- [X] Lists: Simple bulleted and/or numbered lists. No nested lists yet. 
 - [X] Handling other bibliography styles 
 - [X] Creating a (.tar.gz) "submission package", e.g. for arXiv
 - [ ] Numbering equations
