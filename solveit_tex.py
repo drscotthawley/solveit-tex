@@ -274,7 +274,9 @@ def export_ipynb_to_tex(ipynb_path: str, output_path: str = None, ordered=True):
 
             i += 1
 
-    final = '\\documentclass{article}\n\\usepackage{graphicx}\n\\usepackage{booktabs}\n'
+    final = '\\documentclass{article}\n'
+    # packages we definitely want. Hopefully these will be compatible with style files, etc.
+    final += '\\usepackage{graphicx}\n\\usepackage{booktabs}\n\\usepackage{enumitem}\n'
     final += '\n'.join(out) + '\n\n'
     final += '\\end{document}\n'
     final = md_to_latex_italic(final)
