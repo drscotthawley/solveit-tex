@@ -227,6 +227,14 @@ def export_ipynb_to_tex(ipynb_path: str, output_path: str = None, ordered=True):
                 out.append(f'\\subsection{{{line[4:].strip()}}}\n')
             elif line.startswith('## '):
                 out.append(f'\\section{{{line[3:].strip()}}}\n')
+            elif re.match(r'^[*-]\s+|^\d+\.\s+', line):  # list handling (no nested list support yet!)
+                list_lines = [line]
+                i += 1
+                while i < len(lines) and re.match(r'^[*-]\s+|^\d+\.\s+', lines[i]):
+                    list_lines.append(lines[i])
+                    i += 1
+                out.append(make_list(list_lines))
+                continue
             elif line.startswith('|'):    # table handling
                 # Collect table lines
                 table_lines = []
