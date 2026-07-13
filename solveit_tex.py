@@ -245,6 +245,8 @@ def export_ipynb_to_tex(ipynb_path: str, output_path: str = None, ordered=True):
                 out.append(f'\\subsection{{{line[4:].strip()}}}\n')
             elif line.startswith('#### '):
                 out.append(f'\\subsubsection{{{line[4:].strip()}}}\n')
+            elif line.startswith('#####'):   
+                out.append(re.sub(r'^#+\s*(.*)', r'\\textbf{\1}', line) + '\n')  # anything smaller becomes bold
             elif line.startswith('## '):
                 out.append(f'\\section{{{line[3:].strip()}}}\n')
             elif re.match(r'^[*-]\s+|^\d+\.\s+', line):  # list handling (no nested list support yet!)
