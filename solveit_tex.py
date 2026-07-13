@@ -201,12 +201,12 @@ def export_ipynb_to_tex(ipynb_path: str, output_path: str = None, ordered=True):
         content = md_to_latex_bold(content)
         if '#| export' not in content: continue
 
+        filtered = '\n'.join(l for l in content.split('\n') if not l.startswith('#| '))
         out.append(f'% {cell["id"]}')
 
         if cell['cell_type'] == 'raw':
             out.append(filtered)
             continue
-        filtered = re.sub(r'(?<!\\)%', r'\\%', filtered)  # Make sure percent signs don't get treated as latex comments.
         lines = filtered.split('\n')
         i = 0
         while i < len(lines):
