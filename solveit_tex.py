@@ -208,11 +208,11 @@ def export_ipynb_to_tex(ipynb_path: str, output_path: str = None, ordered=True):
             out.append(filtered)
             continue
         lines = filtered.split('\n')
+        lines = [re.sub(r'(?<!\\)%', r'\\%', l) if not l.startswith('%') else l for l in lines] # escape % signs
+
         i = 0
         while i < len(lines):
             line = lines[i]
-            if not line.startswith('%'):
-                line = re.sub(r'(?<!\\)%', r'\\%', line)  # Escape percent signs unless they start the line.
             if line.startswith('# ') and not line.startswith('## '):
                 title = f'{line[2:].strip()}'
             elif line.startswith('\\author{'):
