@@ -201,7 +201,6 @@ def export_ipynb_to_tex(ipynb_path: str, output_path: str = None, ordered=True):
         content = md_to_latex_bold(content)
         if '#| export' not in content: continue
 
-        filtered = '\n'.join(l for l in content.split('\n') if not l.startswith('#| '))
         out.append(f'% {cell["id"]}')
 
         if cell['cell_type'] == 'raw':
@@ -212,6 +211,8 @@ def export_ipynb_to_tex(ipynb_path: str, output_path: str = None, ordered=True):
         i = 0
         while i < len(lines):
             line = lines[i]
+            if not line.startswith('%'):
+                line = re.sub(r'(?<!\\)%', r'\\%', line)  # Escape percent signs unless they start the line.
             if line.startswith('# ') and not line.startswith('## '):
                 title = f'{line[2:].strip()}'
             elif line.startswith('\\author{'):
