@@ -179,6 +179,20 @@ def export_ordered(curr_path, output_path=None):
     print(f'Exported {len(out_cells)} cells to {output_path}')
     return output_path 
 
+def latex_clean_line(line: str) -> str:
+    "Escape percent signs and replace Unicode characters with LaTeX equivalents."
+    if not line.startswith('%'):
+        line = re.sub(r'(?<!\\)%', r'\\%', line)
+    replacements = {
+        '≈': r'$\approx$',
+        '→': r'$\to$',
+        '–': r'--',
+        '—': r'---',
+    }
+    for old, new in replacements.items():
+        line = line.replace(old, new)
+    return line
+
 def export_ipynb_to_tex(ipynb_path: str, output_path: str = None, ordered=True):
     r"""Export a Solveit dialog (.ipynb) to a compilable LaTeX file.
     Cells are emitted in document order, each preceded by a `% <cell-id>` comment.
@@ -208,7 +222,7 @@ def export_ipynb_to_tex(ipynb_path: str, output_path: str = None, ordered=True):
             out.append(filtered)
             continue
         lines = filtered.split('\n')
-        lines = [re.sub(r'(?<!\\)%', r'\\%', l) if not l.startswith('%') else l for l in lines] # escape % signs
+        lines = [latex_clean_line(line) for line in lines]
 
         i = 0
         while i < len(lines):
