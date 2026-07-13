@@ -195,6 +195,9 @@ def latex_clean_line(line: str) -> str:
         '≤': r'$\leq$', '≥': r'$\geq$', '≪': r'$\ll$', '≫': r'$\gg$',
         '∝': r'$\propto$', '∞': r'$\infty$',
         '∂': r'$\partial$', '∇': r'$\nabla$', '√': r'$\sqrt{}$',
+        # check marks 
+        '✓': r'\checkmark',
+        '✗': r'$\times$',
         # Sum/integral/product
         '∑': r'$\sum$', '∏': r'$\prod$', '∫': r'$\int$',
         # Sets & logic
