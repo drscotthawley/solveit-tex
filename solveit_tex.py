@@ -120,12 +120,12 @@ def md_to_latex_italic(text: str):
     return re.sub(r'\*([^*]+)\*', r'\\textit{\1}', text)
 
 def make_table(tbl: dict):
-    "Generate LaTeX table environment from parsed table dict."
-    col_spec = ''.join(tbl['alignments'])
+    "Generate LaTeX table environment from parsed table dict; tabulary auto-wraps to \\linewidth so no table can overflow the page."
+    col_spec = ''.join(a.upper() for a in tbl['alignments'])   # l/c/r -> L/C/R (wrapping)
     lines = [r'\begin{table}[htbp]', r'\centering']
     if tbl.get('caption'): lines.append(r'\caption{' + tbl['caption'] + '}')
     if tbl.get('label'): lines.append(r'\label{tab:' + tbl['label'] + '}')
-    lines.append(r'\begin{tabular}{' + col_spec + '}')
+    lines.append(r'\begin{tabulary}{\linewidth}{' + col_spec + '}')
     lines.append(r'\toprule')
     lines.append(' & '.join(tbl['headers']) + r' \\')
     lines.append(r'\midrule')
@@ -133,7 +133,7 @@ def make_table(tbl: dict):
         if row is None: lines.append(r'\midrule')
         else: lines.append(' & '.join(md_to_latex_bold(cell) for cell in row) + r' \\')
     lines.append(r'\bottomrule')
-    lines.append(r'\end{tabular}')
+    lines.append(r'\end{tabulary}')
     lines.append(r'\end{table}')
     return md_to_latex_italic('\n'.join(lines))
 
@@ -354,7 +354,9 @@ def export_ipynb_to_tex(ipynb_path: str, output_path: str = None, ordered=True):
 
     final = '\\documentclass{article}\n'
     # packages we definitely want. Hopefully these will be compatible with style files, etc.
-    final += '\\usepackage{graphicx}\n\\usepackage{booktabs}\n\\usepackage{enumitem}\n'
+    packages = ['graphicx','booktabs','enumitem','tabulary']
+    for p in packages:  final += '\\usepackage\{'+p+'\}\n'
+    #final += '\\usepackage{graphicx}\n\\usepackage{booktabs}\n\\usepackage{enumitem}\n'
     final += '\n'.join(out) + '\n\n'
     final += '\\end{document}\n'
     final = md_to_latex_italic(final)
