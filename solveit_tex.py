@@ -207,7 +207,7 @@ def export_ipynb_to_tex(ipynb_path: str, output_path: str = None, ordered=True):
         if cell['cell_type'] == 'raw':
             out.append(filtered)
             continue
-
+        filtered = re.sub(r'(?<!\\)%', r'\\%', filtered)  # Make sure percent signs don't get treated as latex comments.
         lines = filtered.split('\n')
         i = 0
         while i < len(lines):
