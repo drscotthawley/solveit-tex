@@ -326,7 +326,7 @@ def compile_latex(tex_file: str, cwd: str = '.'):
     for i in [2, 3]:
         print(f"\nRunning pdflatex (pass {i})...")
         r = subprocess.run(f'pdflatex -halt-on-error {full_tex_path}',
-                       shell=True, cwd=work_dir, capture_output=True, text=True)
+                       shell=True, cwd=work_dir, capture_output=True, text=True, errors='replace')
         if r.returncode != 0:
             print(f"  FAILED:\n{r.stdout[-3000:]}")
             return
