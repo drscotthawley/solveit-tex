@@ -179,6 +179,73 @@ def export_ordered(curr_path, output_path=None):
     print(f'Exported {len(out_cells)} cells to {output_path}')
     return output_path 
 
+def latex_clean_line(line: str) -> str:
+    "Escape percent signs and replace Unicode characters with LaTeX equivalents."
+    if not line.startswith('%'):
+        line = re.sub(r'(?<!\\)%', r'\\%', line)
+    replacements = {
+        # Dashes
+        '–': r'--', '—': r'---', '‐': '-', '‑': '-',
+        # Smart quotes
+        ''': "'", ''': "'", '"': '``', '"': "''",
+        # Basic math
+        '−': r'$-$', '×': r'$\times$', '÷': r'$\div$',
+        '±': r'$\pm$', '∓': r'$\mp$', '·': r'$\cdot$',
+        '≈': r'$\approx$', '≠': r'$\neq$', '≡': r'$\equiv$',
+        '≤': r'$\leq$', '≥': r'$\geq$', '≪': r'$\ll$', '≫': r'$\gg$',
+        '∝': r'$\propto$', '∞': r'$\infty$',
+        '∂': r'$\partial$', '∇': r'$\nabla$', '√': r'$\sqrt{}$',
+        # Sum/integral/product
+        '∑': r'$\sum$', '∏': r'$\prod$', '∫': r'$\int$',
+        # Sets & logic
+        '∈': r'$\in$', '∉': r'$\notin$', '∀': r'$\forall$',
+        '∃': r'$\exists$', '⊂': r'$\subset$', '⊃': r'$\supset$',
+        '⊆': r'$\subseteq$', '⊇': r'$\supseteq$',
+        '∩': r'$\cap$', '∪': r'$\cup$', '∅': r'$\emptyset$',
+        '⊕': r'$\oplus$', '⊗': r'$\otimes$',
+        '¬': r'$\neg$', '∧': r'$\wedge$', '∨': r'$\vee$',
+        # Arrows
+        '→': r'$\to$', '←': r'$\leftarrow$', '↔': r'$\leftrightarrow$',
+        '⇒': r'$\Rightarrow$', '⇐': r'$\Leftarrow$', '⇔': r'$\Leftrightarrow$',
+        '↑': r'$\uparrow$', '↓': r'$\downarrow$',
+        # Geometry
+        '∥': r'$\parallel$', '⊥': r'$\perp$', '∠': r'$\angle$',
+        # Greek lowercase
+        'α': r'$\alpha$', 'β': r'$\beta$', 'γ': r'$\gamma$',
+        'δ': r'$\delta$', 'ε': r'$\epsilon$', 'ζ': r'$\zeta$',
+        'η': r'$\eta$', 'θ': r'$\theta$', 'ι': r'$\iota$',
+        'κ': r'$\kappa$', 'λ': r'$\lambda$', 'μ': r'$\mu$',
+        'ν': r'$\nu$', 'ξ': r'$\xi$', 'π': r'$\pi$',
+        'ρ': r'$\rho$', 'σ': r'$\sigma$', 'τ': r'$\tau$',
+        'υ': r'$\upsilon$', 'φ': r'$\phi$', 'χ': r'$\chi$',
+        'ψ': r'$\psi$', 'ω': r'$\omega$',
+        # Greek uppercase (only those that differ from Latin)
+        'Γ': r'$\Gamma$', 'Δ': r'$\Delta$', 'Θ': r'$\Theta$',
+        'Λ': r'$\Lambda$', 'Ξ': r'$\Xi$', 'Π': r'$\Pi$',
+        'Σ': r'$\Sigma$', 'Υ': r'$\Upsilon$', 'Φ': r'$\Phi$',
+        'Ψ': r'$\Psi$', 'Ω': r'$\Omega$',
+        # Unicode superscripts
+        '⁰': r'$^{0}$', '¹': r'$^{1}$', '²': r'$^{2}$', '³': r'$^{3}$',
+        '⁴': r'$^{4}$', '⁵': r'$^{5}$', '⁶': r'$^{6}$',
+        '⁷': r'$^{7}$', '⁸': r'$^{8}$', '⁹': r'$^{9}$',
+        '⁺': r'$^{+}$', '⁻': r'$^{-}$',
+        # Unicode subscripts
+        '₀': r'$_{0}$', '₁': r'$_{1}$', '₂': r'$_{2}$', '₃': r'$_{3}$',
+        '₄': r'$_{4}$', '₅': r'$_{5}$', '₆': r'$_{6}$',
+        '₇': r'$_{7}$', '₈': r'$_{8}$', '₉': r'$_{9}$',
+        # Misc typography
+        '…': r'\ldots', '°': r'$^\circ$',
+        '′': r"$'$", '″': r"$''$",
+        '•': r'$\bullet$', '§': r'\S', '¶': r'\P',
+        '†': r'$\dagger$', '‡': r'$\ddagger$',
+        '©': r'\textcopyright', '®': r'\textregistered', '™': r'\texttrademark',
+        # Invisible chars — just strip them
+        '­': '', '\u200b': '', '\ufeff': '',
+    }
+    for old, new in replacements.items():
+        line = line.replace(old, new)
+    return line
+
 def export_ipynb_to_tex(ipynb_path: str, output_path: str = None, ordered=True):
     r"""Export a Solveit dialog (.ipynb) to a compilable LaTeX file.
     Cells are emitted in document order, each preceded by a `% <cell-id>` comment.
