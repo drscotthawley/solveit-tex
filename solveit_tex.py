@@ -354,9 +354,9 @@ def export_ipynb_to_tex(ipynb_path: str, output_path: str = None, ordered=True):
 
     final = '\\documentclass{article}\n'
     # packages we definitely want. Hopefully these will be compatible with style files, etc.
-    packages = ['graphicx','booktabs','enumitem','tabulary']
-    for p in packages:  final += '\\usepackage\{'+p+'\}\n'
-    #final += '\\usepackage{graphicx}\n\\usepackage{booktabs}\n\\usepackage{enumitem}\n'
+    #packages = ['graphicx','booktabs','enumitem','tabulary']
+    #for p in packages:  final += '\\usepackage\{'+p+'\}\n'
+    final += '\\usepackage{graphicx}\n\\usepackage{booktabs}\n\\usepackage{enumitem}\n\\usepackage{tabulary}\n'
     final += '\n'.join(out) + '\n\n'
     final += '\\end{document}\n'
     final = md_to_latex_italic(final)
