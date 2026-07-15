@@ -429,7 +429,7 @@ def create_submission_package(project_dir:str='.'):
     import shutil, tarfile
     from rgapi.skill import fd
     
-    extensions = ['tex','png','jpg','tikz','eps','sty','bib','bst']
+    extensions = ['tex','png','jpg','tikz','eps','sty','bib','bst','pdf']
     project_path = Path(project_dir).expanduser().resolve()
     project_name = project_path.name
     tmp_dir = Path(f'/tmp/{project_name}')
