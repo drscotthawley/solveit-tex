@@ -342,7 +342,9 @@ def export_ipynb_to_tex(ipynb_path: str, output_path: str = None, ordered=True):
                 tbl_dict = parse_table(table_lines)
                 if tbl_dict:
                     out.append(make_table(tbl_dict))
-                continue  # Skip the i += 1 at the end    
+                continue  # Skip the i += 1 at the end 
+            elif line.startswith('%'):   # pass comments through
+                out.append(line)   
             else:         # figures
                 fig_dict = parse_figure(line)
                 if fig_dict:
