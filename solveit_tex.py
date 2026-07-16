@@ -54,7 +54,7 @@ def parse_figure(lines):
 def make_figure(fig_dict: dict):
     "Generate LaTeX figure environment from image specs."
     images, caption, label = fig_dict['images'],  fig_dict.get('caption', ''), fig_dict.get('label', '')
-    lines = ['\\begin{figure}[htbp]', '\\centering']  # Start figure environment
+    lines = ['\\begin{figure}[tbp]', '\\centering']  # Start figure environment
     for img in images:
         width_opt = f'[width={img["width"]}]' if 'width' in img else '[width=\\linewidth]' # Add width if specified, defalt to linewidth
         lines.append(f'\\includegraphics{width_opt}{{{img["path"]}}}')  # Include the image
