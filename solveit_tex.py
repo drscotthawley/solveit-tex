@@ -122,7 +122,7 @@ def md_to_latex_italic(text: str):
 def make_table(tbl: dict):
     "Generate LaTeX table environment from parsed table dict; tabulary auto-wraps to \\linewidth so no table can overflow the page."
     col_spec = ''.join(a.upper() for a in tbl['alignments'])   # l/c/r -> L/C/R (wrapping)
-    lines = [r'\begin{table}[htbp]', r'\centering']
+    lines = [r'\begin{table}[tbp]', r'\centering']
     if tbl.get('caption'): lines.append(r'\caption{' + tbl['caption'] + '}')
     if tbl.get('label'): lines.append(r'\label{tab:' + tbl['label'] + '}')
     lines.append(r'\begin{tabulary}{\linewidth}{' + col_spec + '}')
