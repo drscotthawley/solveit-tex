@@ -121,7 +121,8 @@ def md_to_latex_italic(text: str):
 
 def make_table(tbl: dict):
     "Generate LaTeX table environment from parsed table dict; tabulary auto-wraps to \\linewidth so no table can overflow the page."
-    col_spec = ''.join(a.upper() for a in tbl['alignments'])   # l/c/r -> L/C/R (wrapping)
+    # Last two columns uppercase (wrap), rest lowercase (no wrap)
+    col_spec = ''.join(a.lower() for a in aligns[:max(0, n-2)]) + ''.join(a.upper() for a in aligns[max(0, n-2):])
     lines = [r'\begin{table}[tbp]', r'\centering']
     if tbl.get('caption'): lines.append(r'\caption{' + tbl['caption'] + '}')
     if tbl.get('label'): lines.append(r'\label{tab:' + tbl['label'] + '}')
@@ -272,7 +273,7 @@ def export_ipynb_to_tex(ipynb_path: str, output_path: str = None, ordered=True):
         if '#| export' not in content: continue
 
         filtered = '\n'.join(l for l in content.split('\n') if not l.startswith('#| '))
-        out.append(f'% {cell["id"]}')
+        out.append(f'\n% {cell["id"]}')  # Separate cells with newline and keep ID for archival purposes.
 
         if cell['cell_type'] == 'raw':
             out.append(filtered)
