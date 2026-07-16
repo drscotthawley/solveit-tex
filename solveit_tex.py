@@ -121,6 +121,8 @@ def md_to_latex_italic(text: str):
 
 def make_table(tbl: dict):
     "Generate LaTeX table environment from parsed table dict; tabulary auto-wraps to \\linewidth so no table can overflow the page."
+    aligns = tbl['alignments']
+    n = len(aligns)
     # Last two columns uppercase (wrap), rest lowercase (no wrap)
     col_spec = ''.join(a.lower() for a in aligns[:max(0, n-2)]) + ''.join(a.upper() for a in aligns[max(0, n-2):])
     lines = [r'\begin{table}[tbp]', r'\centering']
